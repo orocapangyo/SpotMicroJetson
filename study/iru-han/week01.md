@@ -97,7 +97,7 @@ python .\pybullet_automatic_gait.py
 해결이 안됐던 부분: 시뮬레이션을 껐다가 파워셸로 파이뷸렛을 다시 키면 에러가 나면서 안뜹니다
 
 ```jsx
-(spot_env) PS C:\Users\lkno0\OneDrive\문서\SpotMicroJetson-master\Simulation> python .\pybullet_automatic_gait.py
+(spot_env) PS ...\SpotMicroJetson-master\Simulation> python .\pybullet_automatic_gait.py
 pybullet build time: Dec  2 2025 22:41:41
 starting thread 0
 started testThreads thread 0 with threadHandle 00000000000003F8
@@ -117,12 +117,12 @@ b3Printf: b3Warning[examples/Importers/ImportURDFDemo/BulletUrdfImporter.cpp,152
 b3Printf: URDF file 'plane_transparent.urdf' not found
 
 Traceback (most recent call last):
-  File "C:\Users\lkno0\OneDrive\문서\SpotMicroJetson-master\Simulation\pybullet_automatic_gait.py", line 53, in <module>
+  File "...\SpotMicroJetson-master\Simulation\pybullet_automatic_gait.py", line 53, in <module>
     robot=spotmicroai.Robot(True,True,reset)
-  File "C:\Users\lkno0\OneDrive\문서\SpotMicroJetson-master\Simulation\spotmicroai.py", line 75, in __init__
+  File "...\SpotMicroJetson-master\Simulation\spotmicroai.py", line 75, in __init__
     self.quadruped = self.loadModels()
                      ~~~~~~~~~~~~~~~^^
-  File "C:\Users\lkno0\OneDrive\문서\SpotMicroJetson-master\Simulation\spotmicroai.py", line 154, in loadModels
+  File "...\SpotMicroJetson-master\Simulation\spotmicroai.py", line 154, in loadModels
     planeUid = p.loadURDF("plane_transparent.urdf", [0, 0, 0], orn)
 pybullet.error: Cannot load URDF file.
 numActiveThreads = 0
