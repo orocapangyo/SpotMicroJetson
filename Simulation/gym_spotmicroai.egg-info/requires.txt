@@ -1,3 +1,4 @@
-gym
 numpy
-pybullet
+pybullet>=3.0.6
+matplotlib>=3.5.0
+scipy>=1.7.0
