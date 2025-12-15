@@ -52,7 +52,7 @@ def consoleClear():
 
 def main(id, command_status):
     # Initialize robot and variables inside main function to avoid duplicate GUI
-    robot = spotmicroai.Robot(True, True, reset)
+    robot = spotmicroai.Robot(False, True, reset)
 
     spurWidth = robot.W/2+20
     stepLength = 0
