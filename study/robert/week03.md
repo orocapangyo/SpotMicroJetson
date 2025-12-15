@@ -280,6 +280,263 @@ for foot_name, link_index in foot_links.items():
     print(f"{foot_name} foot position: x={position[0]:.3f}, y={position[1]:.3f}, z={position[2]:.3f}")
 ```
 
+### 4.3.1 SpotMicro 다리 관절 위치 (T0~T4)
+
+SpotMicro의 각 다리는 3개의 관절(shoulder, leg, foot)로 구성되며, 순기구학(Forward Kinematics)을 통해 각 관절과 발끝의 3차원 위치를 계산합니다.
+
+#### T0, T1, T2, T3, T4의 의미
+
+T0부터 T4는 다리의 **기준점부터 발끝까지 각 관절의 위치**를 나타냅니다.
+
+```
+[SpotMicro 다리 구조]
+
+       몸통 (Body)
+         |
+      ┌──┴──┐
+      │ T0  │ ← 다리의 기준점 (몸통 연결부)
+      └──┬──┘
+         │ l1 (shoulder offset)
+      ┌──┴──┐
+      │ T1  │ ← Shoulder 관절 위치
+      └──┬──┘
+         │ l2 (shoulder length)
+      ┌──┴──┐
+      │ T2  │ ← Leg 관절 위치 (elbow)
+      └──┬──┘
+         │ l3 (leg length)
+      ┌──┴──┐
+      │ T3  │ ← Foot 관절 위치 (wrist)
+      └──┬──┘
+         │ l4 (foot length)
+      ┌──┴──┐
+      │ T4  │ ← 발끝 (End Effector)
+      └─────┘
+```
+
+#### 수학적 정의
+
+관절 각도 `(θ1, θ2, θ3)`가 주어졌을 때, 각 위치는 다음과 같이 계산됩니다:
+
+```python
+# kinematics.py의 calcLegPoints 함수
+def calcLegPoints(self, angles):
+    (l1, l2, l3, l4) = (self.l1, self.l2, self.l3, self.l4)
+    (theta1, theta2, theta3) = angles
+    theta23 = theta2 + theta3
+
+    # T0: 기준점 (몸통 연결부)
+    T0 = np.array([0, 0, 0, 1])
+
+    # T1: Shoulder 관절
+    T1 = T0 + np.array([-l1*cos(theta1), l1*sin(theta1), 0, 0])
+
+    # T2: Leg 관절 (elbow)
+    T2 = T1 + np.array([-l2*sin(theta1), -l2*cos(theta1), 0, 0])
+
+    # T3: Foot 관절 (wrist)
+    T3 = T2 + np.array([
+        -l3*sin(theta1)*cos(theta2),
+        -l3*cos(theta1)*cos(theta2),
+        l3*sin(theta2),
+        0
+    ])
+
+    # T4: 발끝 (End Effector)
+    T4 = T3 + np.array([
+        -l4*sin(theta1)*cos(theta23),
+        -l4*cos(theta1)*cos(theta23),
+        l4*sin(theta23),
+        0
+    ])
+
+    return np.array([T0, T1, T2, T3, T4])
+```
+
+#### 각 점의 의미
+
+| 점 | 이름 | 의미 | 좌표계 |
+|----|------|------|--------|
+| **T0** | Base Point | 다리의 기준점, 몸통과 연결되는 지점 | (0, 0, 0) |
+| **T1** | Shoulder Joint | 첫 번째 관절 (좌우 회전) | T0 기준 상대 위치 |
+| **T2** | Leg Joint | 두 번째 관절 (상하 회전, elbow) | T1 기준 상대 위치 |
+| **T3** | Foot Joint | 세 번째 관절 (상하 회전, wrist) | T2 기준 상대 위치 |
+| **T4** | End Effector | 발끝, 지면과 접촉하는 지점 | T3 기준 상대 위치 |
+
+#### 링크 길이 (Link Lengths)
+
+SpotMicro의 다리 링크 길이:
+
+```python
+# 단위: mm
+l1 = 50   # Shoulder offset (몸통에서 shoulder 관절까지)
+l2 = 20   # Shoulder length (shoulder에서 leg 관절까지)
+l3 = 100  # Leg length (leg에서 foot 관절까지, 상완)
+l4 = 115  # Foot length (foot 관절에서 발끝까지, 하완)
+```
+
+#### 관절 각도 (Joint Angles)
+
+```python
+theta1 (θ1): Shoulder 관절 각도 (좌우 회전, abduction/adduction)
+theta2 (θ2): Leg 관절 각도 (상하 회전, flexion/extension)
+theta3 (θ3): Foot 관절 각도 (상하 회전, flexion/extension)
+```
+
+#### 실습 예제: 다리 관절 위치 계산 및 시각화
+
+```python
+import numpy as np
+import pybullet as p
+from math import cos, sin
+
+class LegKinematics:
+    def __init__(self):
+        # 링크 길이 (mm)
+        self.l1 = 50
+        self.l2 = 20
+        self.l3 = 100
+        self.l4 = 115
+
+    def calc_leg_points(self, theta1, theta2, theta3):
+        """관절 각도로부터 각 관절의 위치 계산"""
+        l1, l2, l3, l4 = self.l1, self.l2, self.l3, self.l4
+        theta23 = theta2 + theta3
+
+        # 각 관절 위치 계산
+        T0 = np.array([0, 0, 0, 1])
+        T1 = T0 + np.array([-l1*cos(theta1), l1*sin(theta1), 0, 0])
+        T2 = T1 + np.array([-l2*sin(theta1), -l2*cos(theta1), 0, 0])
+        T3 = T2 + np.array([
+            -l3*sin(theta1)*cos(theta2),
+            -l3*cos(theta1)*cos(theta2),
+            l3*sin(theta2),
+            0
+        ])
+        T4 = T3 + np.array([
+            -l4*sin(theta1)*cos(theta23),
+            -l4*cos(theta1)*cos(theta23),
+            l4*sin(theta23),
+            0
+        ])
+
+        return T0, T1, T2, T3, T4
+
+# 사용 예시
+leg_kin = LegKinematics()
+
+# Home position 각도 (radians)
+theta1 = 0.0        # shoulder: 중립
+theta2 = -0.8       # leg: 약간 구부림
+theta3 = 1.6        # foot: 많이 구부림
+
+# 각 관절 위치 계산
+T0, T1, T2, T3, T4 = leg_kin.calc_leg_points(theta1, theta2, theta3)
+
+print("=== 다리 관절 위치 ===")
+print(f"T0 (Base):     x={T0[0]:6.1f}, y={T0[1]:6.1f}, z={T0[2]:6.1f} mm")
+print(f"T1 (Shoulder): x={T1[0]:6.1f}, y={T1[1]:6.1f}, z={T1[2]:6.1f} mm")
+print(f"T2 (Leg):      x={T2[0]:6.1f}, y={T2[1]:6.1f}, z={T2[2]:6.1f} mm")
+print(f"T3 (Foot):     x={T3[0]:6.1f}, y={T3[1]:6.1f}, z={T3[2]:6.1f} mm")
+print(f"T4 (End):      x={T4[0]:6.1f}, y={T4[1]:6.1f}, z={T4[2]:6.1f} mm")
+```
+
+#### PyBullet에서 관절 위치 시각화
+
+```python
+import pybullet as p
+import time
+
+# PyBullet 초기화
+p.connect(p.GUI)
+robot = p.loadURDF("spot_micro.urdf", [0, 0, 0.3])
+
+# 각 다리의 관절 인덱스
+leg_joints = {
+    'front_left': [0, 1, 2],    # shoulder, leg, foot
+    'front_right': [3, 4, 5],
+    'rear_left': [6, 7, 8],
+    'rear_right': [9, 10, 11]
+}
+
+# 관절 각도 설정
+target_angles = [0.0, -0.8, 1.6]  # shoulder, leg, foot
+
+while True:
+    for leg_name, joints in leg_joints.items():
+        # 각 관절에 각도 적용
+        for joint_idx, angle in zip(joints, target_angles):
+            p.setJointMotorControl2(
+                robot,
+                joint_idx,
+                p.POSITION_CONTROL,
+                targetPosition=angle
+            )
+
+        # 각 관절의 현재 위치 읽기 (PyBullet의 getLinkState)
+        for i, joint_idx in enumerate(joints):
+            link_state = p.getLinkState(robot, joint_idx)
+            pos = link_state[0]  # 월드 좌표계 위치
+
+            joint_names = ['Shoulder (T1)', 'Leg (T2)', 'Foot (T3)']
+            print(f"{leg_name} {joint_names[i]}: "
+                  f"x={pos[0]*1000:.1f}, y={pos[1]*1000:.1f}, z={pos[2]*1000:.1f} mm")
+
+        # 발끝 위치 (T4)
+        foot_link = joints[2] + 1  # foot 관절 다음 링크
+        link_state = p.getLinkState(robot, foot_link)
+        pos = link_state[0]
+        print(f"{leg_name} End (T4): "
+              f"x={pos[0]*1000:.1f}, y={pos[1]*1000:.1f}, z={pos[2]*1000:.1f} mm")
+        print()
+
+    p.stepSimulation()
+    time.sleep(1./240.)
+```
+
+#### T0~T4의 활용
+
+**1. 순기구학 (Forward Kinematics)**
+- 입력: 관절 각도 (θ1, θ2, θ3)
+- 출력: 발끝 위치 (T4)
+- 용도: 관절 각도가 주어졌을 때 발끝이 어디에 있는지 계산
+
+**2. 충돌 검사**
+- T1, T2, T3, T4를 연결한 선분으로 다리 형상 표현
+- 다리가 몸통이나 다른 다리와 충돌하는지 확인
+
+**3. 시각화**
+- 디버깅 시 각 관절의 위치를 화면에 표시
+- 다리의 움직임을 이해하는데 도움
+
+**4. 작업 공간 (Workspace) 계산**
+- 발끝(T4)이 도달할 수 있는 모든 위치의 범위
+- 보행 계획 시 발을 놓을 수 있는 위치 결정
+
+#### 좌표계 변환
+
+각 T는 **다리 로컬 좌표계**에서의 위치입니다. 월드 좌표계로 변환하려면:
+
+```python
+# 다리의 월드 좌표계 변환 행렬
+T_world_to_leg = np.array([
+    [cos(yaw), -sin(yaw), 0, body_x],
+    [sin(yaw),  cos(yaw), 0, body_y],
+    [0,         0,        1, body_z],
+    [0,         0,        0, 1]
+])
+
+# 로컬 좌표 → 월드 좌표
+T4_world = T_world_to_leg.dot(T4)
+```
+
+#### 정리
+
+- **T0~T4**: 다리의 각 관절 및 발끝의 3차원 위치
+- **순기구학**: 관절 각도 → 발끝 위치 계산
+- **역기구학**: 발끝 위치 → 관절 각도 계산 (4.1 참조)
+- **활용**: 보행 제어, 충돌 회피, 시각화, 작업 공간 분석
+
 ### 4.4 키보드로 SpotMicro 제어하기
 
 PyBullet에서 키보드 입력을 받아 로봇을 제어하는 방법을 알아봅니다.
