@@ -56,7 +56,7 @@ for i in range(10000):
 p.disconnect(physicsClient)
 ```
 
-![image.png](attachment:c0a0c347-44d5-414c-afeb-12bfb866afb6:image.png)
+![image1](image/week03_1.png)
 
 - 로봇개로 초기위치 변경해서 생성해보기
 
@@ -74,7 +74,7 @@ cubeStartOrientation = p.getQuaternionFromEuler([0, 0, 3.14])
 robotID = p.loadURDF("../urdf/spotmicroai_gen.urdf.xml", cubeStartPos, cubeStartOrientatio
 ```
 
-![image.png](attachment:73c58d7e-f553-472d-a837-a9c57c2432a7:image.png)
+![image2](image/week03_2.png)
 
 - 사륜구동로봇에 joint 정보를 알아내고 조인트와 속도를 gui로 조절하기
 
@@ -109,7 +109,7 @@ plane = p.loadURDF('plane.urdf')
 
 원하는 joint의 값 얻기, 터미널에서 joint ID 뜸 
 
-![Screenshot from 2025-12-14 14-01-44.png](attachment:cee6d2f0-97ac-468b-9775-51e1a4734f24:d0ecd863-aaad-414e-9780-8a00788aaa68.png)
+![image3](image/week03_3.png)
 
 `p.readUserDebugParameter` : (`paramUniqueId` )한개의 매개변수를 받으며 슬라이더, 버튼, 텍스트 입력창과 같은 UI 요소를 화면에 추가할 수 있습니다
 
@@ -145,11 +145,9 @@ p.disconnect(physicsClient)
 
 ```
 
-[Screencast from 12-14-2025 02:16:15 PM.webm](attachment:d36c0bfa-e67b-4e19-8a82-261b76142d42:Screencast_from_12-14-2025_021615_PM.webm)
 
 - 돌아가서 /micro_spot/SpotMicroJetson/Simulation/pybullet_basic.py 실행
 
-[PID 개념정리](https://www.notion.so/PID-2c83b4d3a713806eb99bf6091d6521f8?pvs=21)
 
 사족보행 `param` 설명 
 
@@ -195,5 +193,5 @@ sudo /home/ehdtod001009/micro_spot/oroca/bin/python3 pybullet_automatic_gait.py
 useFixedBase=False로 설정해야하는데 True로 설정해서 생긴 문제이다.
 
 robot=spotmicroai.Robot(False,True,reset) 로 변경하기 
-
+![image4](image/week03_4.png)
 t1,t2,t3,t4 조절하기
