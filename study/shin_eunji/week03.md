@@ -193,5 +193,7 @@ sudo /home/ehdtod001009/micro_spot/oroca/bin/python3 pybullet_automatic_gait.py
 useFixedBase=False로 설정해야하는데 True로 설정해서 생긴 문제이다.
 
 robot=spotmicroai.Robot(False,True,reset) 로 변경하기 
+
 ![image4](image/week03_4.png)
+
 t1,t2,t3,t4 조절하기
