@@ -25,7 +25,7 @@
 3. 2 자유도일 때 발의 위치 (x, y)에 가기 위해 각 관절이 몇 도(theta_1, theta_2)가 되어야 하는지 계산하는 과정(IK)
 <img width="662" height="960" alt="image" src="https://github.com/user-attachments/assets/77456b3c-89ae-49be-8dee-beef5418c48a" />
 
-* 문제의 정의: 로봇 다리 구조는 링크 두 개(Z_1, Z_2)가 연결된 형태. 로봇의 다리는 길이(Z_1, Z_2)는 이미 알고있다.
+* 문제의 정의: 로봇 다리 구조는 링크 두 개(l_1, l_2)가 연결된 형태. 로봇의 다리는 길이(l_1, l_2)는 이미 알고있다.
 * 목표: 발끝을 좌표 (x, y)에 두고 싶다. 그러려면 첫 번째 관절 각도 theta_1과 두 번째 관절 각도 theta_2를 얼마로 꺾어야 할까?
 
 * 순운동학(Forward Kinematics): 박스 친 수식 부분. 각도(theta_1, theta_2)를 알 때 발끝 좌표(x, y)가 어디일지 구함.
@@ -33,10 +33,10 @@
 
 * 역운동학(Inverse Kinematics): 사진의 중간부터 아래까지.
    삼각함수의 합성: x와 y 식을 제곱해서 더하고 정리하면 sin(theta_1 + alpha) 꼴의 형태가 나온다.
-* 역운동학 결과값 (theta_1): 결국 아래 수식처럼 theta_1을 x, y, Z_1, Z_2만으로 표현하는 데 성공했다.
+* 역운동학 결과값 (theta_1): 결국 아래 수식처럼 theta_1을 x, y, l_1, l_2만으로 표현하는 데 성공했다.
   <img width="458" height="97" alt="image" src="https://github.com/user-attachments/assets/c4a96c4d-b61d-4ff6-a3ca-5708c4e65d38" />
 
-* 역운동학 공식에 원하는 좌표 (x, y)와 다리 길이(Z_1, Z_2)만 넣으면 바로 첫 번째 관절 각도가 나오게된다.
+* 역운동학 공식에 원하는 좌표 (x, y)와 다리 길이(l_1, l_2)만 넣으면 바로 첫 번째 관절 각도가 나오게된다.
 
 * theta_2 구하기
   <img width="700" height="960" alt="image" src="https://github.com/user-attachments/assets/fb111974-58ac-4fe3-ba3b-07f6d7612c74" />
