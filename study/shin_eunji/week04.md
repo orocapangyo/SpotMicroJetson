@@ -37,13 +37,10 @@ DH parameter 설정하는 규칙만 준수한다면, 각 좌표들의 위치와 
 
 <aside>
 변환행렬 ($T_i​ $)
-T_i =\begin{bmatrix}\cos(\theta_i) & -\sin(\theta_i)\cos(\alpha_i) & \sin(\theta_i)\sin(\alpha_i) & a_i\cos(\theta_i) \\\sin(\theta_i) & \cos(\theta_i)\cos(\alpha_i) & -\cos(\theta_i)\sin(\alpha_i) & a_i\sin(\theta_i) \\0 & \sin(\alpha_i) & \cos(\alpha_i) & d_i \\0 & 0 & 0 & 1\end{bmatrix}
-
+이미지 넣기1
 정기구학(Forward Kinematics)
 6자유도 경우,변환행렬을 이런식으로 곱해서 로봇의 끝단위치를 구할 수 있다. 
-$$
-T_{\text{end-effector}} = T_1 \cdot T_2 \cdot T_3 \cdot T_4 \cdot T_5 \cdot T_6
-$$
+이미지 넣기2
 
 **SpotMicro 정기구학 코드 분석** 
 
