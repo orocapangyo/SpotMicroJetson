@@ -28,4 +28,4 @@ cd SpotMicroJetson/Simulation/
 python pybullet_automatic_gait.py
 ```
 
-![image.png](attachment:d56faf3c-7791-4ca0-8ab8-cbc5db442173:image.png)
+![image1](image/week02_1.png)
