@@ -1,3 +1,4 @@
+1주차 - setting 
 폴더 mirco_spot 생성 
 
 ubuntu 22.04
