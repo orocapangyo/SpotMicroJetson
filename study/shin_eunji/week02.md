@@ -1,0 +1,30 @@
+폴더 mirco_spot 생성 
+
+ubuntu 22.04
+
+가상환경 oroca 실행
+
+```jsx
+source oroca/bin/activate
+```
+
+requirement.txt
+
+```jsx
+gym==0.17.2
+matplotlib==3.3.2
+numpy==1.19.2
+pybullet==3.0.4
+keyboard==0.13.5
+```
+
+pybullet 로 실행
+
+```jsx
+cd micro_spot
+git clone https://github.com/Road-Balance/SpotMicroJetson.git
+cd SpotMicroJetson/Simulation/
+python pybullet_automatic_gait.py
+```
+
+![image.png](attachment:d56faf3c-7791-4ca0-8ab8-cbc5db442173:image.png)
