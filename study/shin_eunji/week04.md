@@ -37,10 +37,10 @@ DH parameter 설정하는 규칙만 준수한다면, 각 좌표들의 위치와 
 
 <aside>
 변환행렬 ($T_i​ $)
-이미지 넣기1
+![로봇팔](image/week04_4.png)
 정기구학(Forward Kinematics)
 6자유도 경우,변환행렬을 이런식으로 곱해서 로봇의 끝단위치를 구할 수 있다. 
-이미지 넣기2
+![로봇팔](image/week04_5.png)
 
 **SpotMicro 정기구학 코드 분석** 
 
