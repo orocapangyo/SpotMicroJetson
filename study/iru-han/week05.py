@@ -139,51 +139,61 @@ class Kinematic:
         # 이 점들을 선으로 이으면 우리가 아는 로봇 다리 모양이 됨
         return np.array([T0, T1, T2, T3, T4])
 
+    # 모든 수학적 계산(BodyIK, LegIK, calcLegPoints)을 하나로 합쳐서 화면에 시각화
+    # BodyIK로 몸통 기울기를 잡고
+    # LegIK로 다리 꺾임을 계산해서
+    # Scatter/Plot으로 화면에 점과 선을 찍어줌.
     def drawRobot(self, ax, Lp, angles, center):
-        (omega, phi, psi) = angles # 회전 - 몸통이 어느 방향으로 꺾여 있는가? (기울기)
-        (xm, ym, zm) = center # 위치 - 몸통이 공간 어디에 있는가? (중심 위치)
+    # 1. 몸통의 회전(angles)과 위치(center) 정보 추출
+    (omega, phi, psi) = angles
+    (xm, ym, zm) = center
 
-        # angles = (0, 0.2, 0) # 로봇이 앞다리를 낮추고 뒷다리를 높여서 앞으로 엎드린 자세가 됨.
-        # center = (0, 50, 0) # 로봇이 다리는 그대로 둔 채 몸통만 위로 50mm 쑥 올라감.
+    # 2. 몸통 역운동학(bodyIK)을 통해 4개 어깨의 변환 행렬 계산
+    (Tlf, Trf, Tlb, Trb) = self.bodyIK(omega, phi, psi, xm, ym, zm)
+
+    # 4개 다리의 정보를 리스트에 담아 반복문 준비
+    transforms = [Tlf, Trf, Tlb, Trb]
+    
+    # 3. 좌/우 반전을 위한 Mirror 행렬 (Ix)
+    # X축 값을 반전시켜서 오른쪽 다리가 왼쪽과 반대 방향으로 뻗게 함
+    Ix = np.array([[-1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
+    
+    for i, T in enumerate(transforms):
+        # 목표 발 위치 (아까 원형 궤적으로 계산한 그 좌표)
+        target_pos = Lp[i]
         
-        # lf (Left Front): 왼쪽 앞 어깨
-        # rf (Right Front): 오른쪽 앞 어깨
-        # lb (Left Back): 왼쪽 뒤 어깨
-        # rb (Right Back): 오른쪽 뒤 어깨
-        (Tlf, Trf, Tlb, Trb) = self.bodyIK(omega, phi, psi, xm, ym, zm)
-
-        # 다리 4개 그리기 루프
-        transforms = [Tlf, Trf, Tlb, Trb]
+        # 4. 다리 각도 계산 로직
+        if i % 2 == 1: # 홀수 번호(1, 3)는 오른쪽 다리 (FR, RR)
+            # [오른쪽 다리 로직]
+            # 1) 목표 위치를 로봇 어깨 좌표계로 가져옴 (inv_T)
+            # 2) 오른쪽은 왼쪽의 반대이므로 Ix를 곱해 미러링 적용
+            inv_T = Ix.dot(np.linalg.inv(T).dot(target_pos))
+            # 3) 역운동학으로 관절 각도 계산
+            leg_angles = self.legIK(inv_T)
+            # 4) 순운동학으로 다리 마디 점(T0~T4) 계산
+            points = self.calcLegPoints(leg_angles)
+            # 5) 다시 월드 좌표(전체 공간)로 돌려놓을 때도 Ix 적용
+            final_points = [T.dot(Ix.dot(p)) for p in points]
         
-        # 좌/우 구분을 위한 Mirror 행렬
-        Ix = np.array([[-1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
+        else: # 짝수 번호(0, 2)는 왼쪽 다리 (FL, RL)
+            # [왼쪽 다리 로직] 미러링 없이 계산
+            inv_T = np.linalg.inv(T).dot(target_pos)
+            leg_angles = self.legIK(inv_T)
+            points = self.calcLegPoints(leg_angles)
+            final_points = [T.dot(p) for p in points]
+
+        # 5. 시각화 (Matplotlib 3D 그래프에 그리기)
+        # 중요: Matplotlib과 로봇의 축 방향이 다르기 때문에 Y와 Z를 바꿔서 출력함
+        xs = [p[0] for p in final_points]
+        ys = [p[2] for p in final_points] # 로봇의 Z(좌우) -> 그래프의 Y
+        zs = [p[1] for p in final_points] # 로봇의 Y(상하) -> 그래프의 Z
         
-        for i, T in enumerate(transforms):
-            # 1. 역운동학(IK)으로 각도 계산
-            target_pos = Lp[i]
-            if i % 2 == 1: # 오른쪽 다리 (Mirror 적용)
-                inv_T = Ix.dot(np.linalg.inv(T).dot(target_pos))
-                leg_angles = self.legIK(inv_T)
-                points = self.calcLegPoints(leg_angles)
-                # 월드 좌표로 변환
-                final_points = [T.dot(Ix.dot(p)) for p in points]
-            else: # 왼쪽 다리
-                inv_T = np.linalg.inv(T).dot(target_pos)
-                leg_angles = self.legIK(inv_T)
-                points = self.calcLegPoints(leg_angles)
-                # 월드 좌표로 변환
-                final_points = [T.dot(p) for p in points]
+        # 다리 뼈대(검은 선), 어깨(파란 점), 발끝(빨간 점) 그리기
+        ax.plot(xs, ys, zs, 'k-', lw=2) 
+        ax.scatter(xs[0], ys[0], zs[0], color='b', s=50) 
+        ax.scatter(xs[-1], ys[-1], zs[-1], color='r', s=50)
 
-            # 2. 그래프에 그리기
-            xs = [p[0] for p in final_points]
-            ys = [p[2] for p in final_points] # Z축을 Y축으로 시각화 (Matplotlib 특성)
-            zs = [p[1] for p in final_points] # Y축을 Z축으로 시각화
-            
-            ax.plot(xs, ys, zs, 'k-', lw=2) # 다리 링크
-            ax.scatter(xs[0], ys[0], zs[0], color='b', s=50) # 어깨
-            ax.scatter(xs[-1], ys[-1], zs[-1], color='r', s=50) # 발끝
-
-# --- 2. Animation Setup (여기가 과제 핵심) ---
+# --- 2. Animation Setup ---
 def update_graph(num, ax, kin):
     ax.clear()
     
@@ -196,7 +206,7 @@ def update_graph(num, ax, kin):
     ax.set_ylabel("Z (Side)")
     ax.set_zlabel("Y (Up/Down)")
     
-    # --- [수정] 원형 궤적 생성 (Circular Trajectory) ---
+    # --- 원형 궤적 생성 (Circular Trajectory) ---
     t = num * 0.15  # 속도 조절
     radius = 25.0   # 반지름 (너무 크면 IK 에러 발생 가능)
     base_y = -120.0 # 로봇 높이
