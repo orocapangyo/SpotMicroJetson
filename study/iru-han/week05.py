@@ -144,54 +144,54 @@ class Kinematic:
     # LegIK로 다리 꺾임을 계산해서
     # Scatter/Plot으로 화면에 점과 선을 찍어줌.
     def drawRobot(self, ax, Lp, angles, center):
-    # 1. 몸통의 회전(angles)과 위치(center) 정보 추출
-    (omega, phi, psi) = angles
-    (xm, ym, zm) = center
+        # 1. 몸통의 회전(angles)과 위치(center) 정보 추출
+        (omega, phi, psi) = angles
+        (xm, ym, zm) = center
 
-    # 2. 몸통 역운동학(bodyIK)을 통해 4개 어깨의 변환 행렬 계산
-    (Tlf, Trf, Tlb, Trb) = self.bodyIK(omega, phi, psi, xm, ym, zm)
+        # 2. 몸통 역운동학(bodyIK)을 통해 4개 어깨의 변환 행렬 계산
+        (Tlf, Trf, Tlb, Trb) = self.bodyIK(omega, phi, psi, xm, ym, zm)
 
-    # 4개 다리의 정보를 리스트에 담아 반복문 준비
-    transforms = [Tlf, Trf, Tlb, Trb]
-    
-    # 3. 좌/우 반전을 위한 Mirror 행렬 (Ix)
-    # X축 값을 반전시켜서 오른쪽 다리가 왼쪽과 반대 방향으로 뻗게 함
-    Ix = np.array([[-1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
-    
-    for i, T in enumerate(transforms):
-        # 목표 발 위치 (아까 원형 궤적으로 계산한 그 좌표)
-        target_pos = Lp[i]
+        # 4개 다리의 정보를 리스트에 담아 반복문 준비
+        transforms = [Tlf, Trf, Tlb, Trb]
         
-        # 4. 다리 각도 계산 로직
-        if i % 2 == 1: # 홀수 번호(1, 3)는 오른쪽 다리 (FR, RR)
-            # [오른쪽 다리 로직]
-            # 1) 목표 위치를 로봇 어깨 좌표계로 가져옴 (inv_T)
-            # 2) 오른쪽은 왼쪽의 반대이므로 Ix를 곱해 미러링 적용
-            inv_T = Ix.dot(np.linalg.inv(T).dot(target_pos))
-            # 3) 역운동학으로 관절 각도 계산
-            leg_angles = self.legIK(inv_T)
-            # 4) 순운동학으로 다리 마디 점(T0~T4) 계산
-            points = self.calcLegPoints(leg_angles)
-            # 5) 다시 월드 좌표(전체 공간)로 돌려놓을 때도 Ix 적용
-            final_points = [T.dot(Ix.dot(p)) for p in points]
+        # 3. 좌/우 반전을 위한 Mirror 행렬 (Ix)
+        # X축 값을 반전시켜서 오른쪽 다리가 왼쪽과 반대 방향으로 뻗게 함
+        Ix = np.array([[-1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
         
-        else: # 짝수 번호(0, 2)는 왼쪽 다리 (FL, RL)
-            # [왼쪽 다리 로직] 미러링 없이 계산
-            inv_T = np.linalg.inv(T).dot(target_pos)
-            leg_angles = self.legIK(inv_T)
-            points = self.calcLegPoints(leg_angles)
-            final_points = [T.dot(p) for p in points]
+        for i, T in enumerate(transforms):
+            # 목표 발 위치 (아까 원형 궤적으로 계산한 그 좌표)
+            target_pos = Lp[i]
+            
+            # 4. 다리 각도 계산 로직
+            if i % 2 == 1: # 홀수 번호(1, 3)는 오른쪽 다리 (FR, RR)
+                # [오른쪽 다리 로직]
+                # 1) 목표 위치를 로봇 어깨 좌표계로 가져옴 (inv_T)
+                # 2) 오른쪽은 왼쪽의 반대이므로 Ix를 곱해 미러링 적용
+                inv_T = Ix.dot(np.linalg.inv(T).dot(target_pos))
+                # 3) 역운동학으로 관절 각도 계산
+                leg_angles = self.legIK(inv_T)
+                # 4) 순운동학으로 다리 마디 점(T0~T4) 계산
+                points = self.calcLegPoints(leg_angles)
+                # 5) 다시 월드 좌표(전체 공간)로 돌려놓을 때도 Ix 적용
+                final_points = [T.dot(Ix.dot(p)) for p in points]
+            
+            else: # 짝수 번호(0, 2)는 왼쪽 다리 (FL, RL)
+                # [왼쪽 다리 로직] 미러링 없이 계산
+                inv_T = np.linalg.inv(T).dot(target_pos)
+                leg_angles = self.legIK(inv_T)
+                points = self.calcLegPoints(leg_angles)
+                final_points = [T.dot(p) for p in points]
 
-        # 5. 시각화 (Matplotlib 3D 그래프에 그리기)
-        # 중요: Matplotlib과 로봇의 축 방향이 다르기 때문에 Y와 Z를 바꿔서 출력함
-        xs = [p[0] for p in final_points]
-        ys = [p[2] for p in final_points] # 로봇의 Z(좌우) -> 그래프의 Y
-        zs = [p[1] for p in final_points] # 로봇의 Y(상하) -> 그래프의 Z
-        
-        # 다리 뼈대(검은 선), 어깨(파란 점), 발끝(빨간 점) 그리기
-        ax.plot(xs, ys, zs, 'k-', lw=2) 
-        ax.scatter(xs[0], ys[0], zs[0], color='b', s=50) 
-        ax.scatter(xs[-1], ys[-1], zs[-1], color='r', s=50)
+            # 5. 시각화 (Matplotlib 3D 그래프에 그리기)
+            # 중요: Matplotlib과 로봇의 축 방향이 다르기 때문에 Y와 Z를 바꿔서 출력함
+            xs = [p[0] for p in final_points]
+            ys = [p[2] for p in final_points] # 로봇의 Z(좌우) -> 그래프의 Y
+            zs = [p[1] for p in final_points] # 로봇의 Y(상하) -> 그래프의 Z
+            
+            # 다리 뼈대(검은 선), 어깨(파란 점), 발끝(빨간 점) 그리기
+            ax.plot(xs, ys, zs, 'k-', lw=2) 
+            ax.scatter(xs[0], ys[0], zs[0], color='b', s=50) 
+            ax.scatter(xs[-1], ys[-1], zs[-1], color='r', s=50)
 
 # --- 2. Animation Setup ---
 def update_graph(num, ax, kin):
