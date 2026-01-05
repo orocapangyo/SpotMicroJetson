@@ -169,12 +169,17 @@ class PyBulletParameterExperiment:
         self.plane = p.loadURDF("plane.urdf")
         p.changeDynamics(self.plane, -1, lateralFriction=1.0)
         
-        # 로봇 URDF 로드
+        # 로봇 URDF 로드 (공중에 고정)
         urdf_path = self._find_urdf()
         if urdf_path:
-            self.robot = p.loadURDF(urdf_path, [0, 0, 0.25])
+            self.robot = p.loadURDF(
+                urdf_path, 
+                [0, 0, 0.3],  # 더 높은 위치
+                useFixedBase=True  # 공중에 고정 (넘어지지 않음)
+            )
             self.robot_loaded = True
             print(f"URDF 로드 성공: {urdf_path}")
+            print("로봇이 공중에 고정되어 있습니다 (useFixedBase=True)")
         else:
             print("URDF 파일을 찾을 수 없습니다.")
             self.robot = None
