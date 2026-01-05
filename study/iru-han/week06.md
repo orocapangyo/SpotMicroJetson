@@ -79,6 +79,8 @@ def calcLeg(self, t, x, y, z):
             # self.Sh: 이 사인 값에 Sh(Step Height)를 곱해서 실제 발이 얼마나 높이 뜰지 결정
             return curLp
 ```
+
+* 정리
 <img width="667" height="267" alt="image" src="https://github.com/user-attachments/assets/d23efe27-9978-4f8c-ba4f-022e96a2cb3c" />
 
   
@@ -109,7 +111,11 @@ def calcLeg(self, t, x, y, z):
             return fixedLp
 ```
 -> 기구학적으로 X, Z축 이동량을 제거하였음에도 보행 주기 내 무게 중심(CoM)의 미세한 변화와 지면 접촉 시의 충격으로 인해 미세한 변위가 발생함
+  
+  
 
+
+  
 spotmicroai.py
 ```
     def changeDynamics(self,quadruped):
@@ -130,11 +136,13 @@ spotmicroai.py
 마찰력을 수정해야 제자리에서 걷는다 (아니면 앞으로 감)
 
 <img width="397" height="350" alt="image" src="https://github.com/user-attachments/assets/8306a91a-695e-473a-86ac-3743ab43500c" />
+  
+  
+  
+  
 
 
 # 논문 - Bridge the Gap: Enhancing Quadruped Locomotion with Vertical Ground Perturbations
-# 연구 개요 및 분석 의견
-
 ## 1. 연구의 핵심 목표
 
 로봇 개(사족 보행 로봇)는 산길이나 거친 땅은 잘 다니지만, 위아래로 출렁거리는 구름다리 같은 곳에서는 중심을 잡기 매우 어려움.  
