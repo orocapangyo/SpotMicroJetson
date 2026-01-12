@@ -1,14 +1,15 @@
 """
-7-3.py: PyBullet Forward Walking Simulation
-Week 07 - 전진 보행 시뮬레이션
+7-3-bound.py: PyBullet Bounding Gait Simulation
+Week 07 - Bound 보행 시뮬레이션 (강아지 달리기 모션)
 
-이 시뮬레이션은 TrottingGait를 사용하여 로봇의 전진 보행을 구현합니다.
-GUI 슬라이더로 Step Length와 Step Height를 조절할 수 있습니다.
+이 시뮬레이션은 앞다리 2개, 뒷다리 2개가 동시에 움직이는 
+Bound 보행 패턴을 구현합니다.
 
 조작 방법:
 - Step Length 슬라이더: 보폭 조절 (0~100mm)
 - Step Height 슬라이더: 발 들어올리는 높이 (20~80mm)
 - Height 슬라이더: 몸체 높이 조절
+- W 키: 걷기 토글
 - R 키: 로봇 위치 리셋
 """
 
@@ -29,13 +30,116 @@ import math
 import numpy as np
 
 from Kinematics.kinematics import Kinematic
-from Kinematics.kinematicMotion import TrottingGait
 
 
-class ForwardWalkingSimulation:
+class BoundingGait:
     """
-    PyBullet 전진 보행 시뮬레이션
-    TrottingGait 클래스를 사용하여 Trot 보행 패턴을 구현합니다.
+    Bounding Gait 패턴 생성기
+    앞다리(FL+FR)와 뒷다리(RL+RR)가 각각 동시에 움직입니다.
+    """
+    
+    def __init__(self):
+        # 기본 발끝 위치 (로봇 몸체 기준)
+        self.W = 75 + 5 + 40  # 좌우 폭
+        
+        # 기본 발 위치 [x, y, z, 1]
+        # x: 앞뒤, y: 높이, z: 좌우
+        self.default_stance = np.array([
+            [120, -100, self.W/2, 1],    # Front Left (FL)
+            [120, -100, -self.W/2, 1],   # Front Right (FR)
+            [-50, -100, self.W/2, 1],    # Rear Left (RL)
+            [-50, -100, -self.W/2, 1]    # Rear Right (RR)
+        ])
+        
+        # 보행 파라미터
+        self.Sh = 40.0  # Step Height (발 들어올리는 높이)
+        self.period = 1.0  # 보행 주기 (초)
+    
+    def positions(self, t, kb_offset):
+        """
+        시간 t에서의 4개 다리 발끝 위치 계산
+        
+        Returns:
+        --------
+        foot_positions : numpy array (4x4)
+            각 다리의 [x, y, z, 1] 위치
+            x: 앞뒤(전진), y: 높이(수직), z: 좌우
+        """
+        step_length = kb_offset.get('IDstepLength', 0.0)
+        step_alpha = kb_offset.get('IDstepAlpha', 0.0)
+        
+        # 보행 주기 계산
+        phase = (t % self.period) / self.period  # 0~1 반복
+        
+        foot_positions = np.copy(self.default_stance)
+        
+        # 각 다리의 궤적 계산
+        for leg_idx in range(4):
+            # 앞다리(0,1) vs 뒷다리(2,3) 구분
+            if leg_idx < 2:  # Front legs (FL, FR)
+                leg_phase = phase
+            else:  # Rear legs (RL, RR)
+                leg_phase = (phase + 0.5) % 1.0  # 0.5 뒤쳐짐
+            
+            # 타원 궤적 계산
+            x_offset, y_offset = self._compute_trajectory(
+                leg_phase, 
+                step_length,
+                self.Sh
+            )
+            
+            # 회전 적용
+            if step_alpha != 0:
+                # 앞다리는 바깥쪽, 뒷다리는 안쪽으로
+                if leg_idx < 2:  # 앞다리
+                    x_offset += step_alpha * 0.5
+                else:  # 뒷다리
+                    x_offset -= step_alpha * 0.5
+            
+            # ★ 핵심 수정: 좌표계 올바르게 적용 ★
+            foot_positions[leg_idx][0] += x_offset  # X축: 앞뒤 이동
+            foot_positions[leg_idx][1] += y_offset  # Y축: 높이 변화 (수정!)
+            # Z축 (foot_positions[leg_idx][2])은 좌우이므로 건드리지 않음
+        
+        return foot_positions
+    
+    def _compute_trajectory(self, phase, step_length, step_height):
+        """
+        단일 다리의 타원 궤적 계산
+        
+        Returns:
+        --------
+        x_offset : float
+            앞뒤 방향 오프셋 (전진 방향)
+        y_offset : float
+            높이 방향 오프셋 (수직 방향)
+        """
+        if phase < 0.5:
+            # Swing Phase (공중): 발을 앞으로 이동
+            swing_progress = phase / 0.5  # 0~1
+            
+            # X축: -step_length/2 → +step_length/2 (앞으로)
+            x_offset = -step_length/2 + step_length * swing_progress
+            
+            # Y축: 포물선 (0 → step_height → 0) - 수직 위로!
+            y_offset = step_height * math.sin(swing_progress * math.pi)
+            
+        else:
+            # Stance Phase (지면): 발로 지면을 뒤로 밀기
+            stance_progress = (phase - 0.5) / 0.5  # 0~1
+            
+            # X축: +step_length/2 → -step_length/2 (뒤로)
+            x_offset = step_length/2 - step_length * stance_progress
+            
+            # Y축: 지면 접촉 (높이 0)
+            y_offset = 0.0
+        
+        return x_offset, y_offset
+
+class BoundingWalkingSimulation:
+    """
+    PyBullet Bounding 보행 시뮬레이션
+    앞다리와 뒷다리가 각각 동시에 움직이는 패턴
     """
     
     def __init__(self):
@@ -67,7 +171,7 @@ class ForwardWalkingSimulation:
         
         # 기구학 및 보행 패턴
         self.kinematics = Kinematic()
-        self.trotting = TrottingGait()
+        self.bounding = BoundingGait()  # ← Bounding 패턴 사용!
         
         # 관절 매핑
         self.joint_name_to_id = self._get_joint_names()
@@ -83,14 +187,8 @@ class ForwardWalkingSimulation:
         # 시작 시간
         self.start_time = time.time()
         
-        # 기본 발끝 위치
-        self.W = 75 + 5 + 40  # spur width
-        self.default_Lp = np.array([
-            [120, -100, self.W/2, 1],    # Front Left
-            [120, -100, -self.W/2, 1],   # Front Right
-            [-50, -100, self.W/2, 1],    # Rear Left
-            [-50, -100, -self.W/2, 1]    # Rear Right
-        ])
+        # 상태
+        self.is_walking = False
         
         # GUI 슬라이더 생성
         self._create_sliders()
@@ -103,19 +201,18 @@ class ForwardWalkingSimulation:
             cameraTargetPosition=[0, 0, 0.15]
         )
         
-        # 상태
-        self.is_walking = False
-        
         print("=" * 60)
-        print("Forward Walking Simulation")
+        print("Bounding Gait Simulation (강아지 달리기 모션)")
         print("-" * 60)
         print("Controls:")
-        print("  - Step Length slider: Adjust stride length")
-        print("  - Step Height slider: Adjust foot lift height")
-        print("  - Height slider:      Adjust body height")
-        print("  - W key:              Toggle walking ON/OFF")
-        print("  - R key:              Reset robot position")
-        print("  - Ctrl+C:             Exit simulation")
+        print("  - Step Length slider: 보폭 조절")
+        print("  - Step Height slider: 발 들어올리는 높이")
+        print("  - Height slider:      몸체 높이 조절")
+        print("  - W key:              걷기 ON/OFF")
+        print("  - R key:              로봇 리셋")
+        print("  - Ctrl+C:             종료")
+        print("-" * 60)
+        print("보행 패턴: 앞다리(FL+FR) ↔ 뒷다리(RL+RR)")
         print("=" * 60)
     
     def _get_joint_names(self):
@@ -133,13 +230,16 @@ class ForwardWalkingSimulation:
     def _create_sliders(self):
         """GUI 슬라이더 생성"""
         self.step_length_slider = p.addUserDebugParameter("Step Length", 0, 100, 60)
-        self.step_height_slider = p.addUserDebugParameter("Step Height", 20, 80, 40)
+        self.step_height_slider = p.addUserDebugParameter("Step Height", 20, 80, 50)
         self.height_slider = p.addUserDebugParameter("Body Height", -30, 50, 20)
         
         # PD 게인 슬라이더
         self.kp_slider = p.addUserDebugParameter("Kp", 0, 0.1, self.kp)
         self.kd_slider = p.addUserDebugParameter("Kd", 0, 1.0, self.kd)
         self.force_slider = p.addUserDebugParameter("Max Force", 0, 50, self.max_force)
+        
+        # 보행 주기 슬라이더
+        self.period_slider = p.addUserDebugParameter("Period (sec)", 0.5, 2.0, 1.0)
     
     def reset_robot(self):
         """로봇 위치 리셋"""
@@ -195,28 +295,29 @@ class ForwardWalkingSimulation:
         # 슬라이더 값 읽기
         step_length = p.readUserDebugParameter(self.step_length_slider)
         step_height = p.readUserDebugParameter(self.step_height_slider)
+        period = p.readUserDebugParameter(self.period_slider)
         
-        # TrottingGait 파라미터 설정
-        
+        # BoundingGait 파라미터 업데이트
+        self.bounding.period = period
         
         if self.is_walking:
-            self.trotting.Sh = step_height
+            self.bounding.Sh = step_height
             kb_offset = {
                 'IDstepLength': step_length,
                 'IDstepWidth': 0.0,
                 'IDstepAlpha': 0.0
             }
         else:
-            # 정지 상태 - 기본 위치
-            self.trotting.Sh = 0
+            # 정지 상태
+            self.bounding.Sh = 0.0
             kb_offset = {
                 'IDstepLength': 0.0,
                 'IDstepWidth': 0.0,
                 'IDstepAlpha': 0.0
             }
         
-        # TrottingGait로 발끝 위치 계산
-        foot_positions = self.trotting.positions(t, kb_offset)
+        # BoundingGait로 발끝 위치 계산
+        foot_positions = self.bounding.positions(t, kb_offset)
         
         return foot_positions
     
@@ -269,19 +370,20 @@ class ForwardWalkingSimulation:
             cameraTargetPosition=robot_pos
         )
     
-    def display_status(self):
-        """상태 정보 표시"""
-        robot_pos, _ = p.getBasePositionAndOrientation(self.robot)
-        distance = math.sqrt(robot_pos[0]**2 + robot_pos[1]**2)
+    def visualize_gait_phase(self, t):
+        """보행 위상 시각화 (디버깅용)"""
+        phase = (t % self.bounding.period) / self.bounding.period
         
-        step_length = p.readUserDebugParameter(self.step_length_slider)
-        step_height = p.readUserDebugParameter(self.step_height_slider)
+        # 앞다리 위상
+        front_phase = phase
+        # 뒷다리 위상
+        rear_phase = (phase + 0.5) % 1.0
         
-        status = "WALKING" if self.is_walking else "STOPPED"
+        # 상태 텍스트
+        front_state = "SWING" if front_phase < 0.5 else "STANCE"
+        rear_state = "SWING" if rear_phase < 0.5 else "STANCE"
         
-        # 디버그 텍스트 업데이트 (기존 텍스트 삭제 후 재생성하면 메모리 누수 발생)
-        # 여기서는 콘솔 출력만 사용
-        pass
+        return f"Front:{front_state} Rear:{rear_state}"
     
     def run(self):
         """메인 시뮬레이션 루프"""
@@ -313,8 +415,11 @@ class ForwardWalkingSimulation:
                     robot_pos, _ = p.getBasePositionAndOrientation(self.robot)
                     distance = math.sqrt(robot_pos[0]**2 + robot_pos[1]**2)
                     status = "WALKING" if self.is_walking else "STOPPED"
+                    gait_info = self.visualize_gait_phase(t)
+                    
                     print(f"[{status}] Distance: {distance:.2f}m | "
-                          f"Position: ({robot_pos[0]:.2f}, {robot_pos[1]:.2f})")
+                          f"Pos: ({robot_pos[0]:.2f}, {robot_pos[1]:.2f}) | "
+                          f"Gait: {gait_info}")
                 
                 # 짧은 대기
                 time.sleep(1./240.)
@@ -328,7 +433,7 @@ class ForwardWalkingSimulation:
 
 def main():
     """메인 함수"""
-    sim = ForwardWalkingSimulation()
+    sim = BoundingWalkingSimulation()
     sim.run()
 
 
