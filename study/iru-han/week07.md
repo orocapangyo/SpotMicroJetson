@@ -1,4 +1,4 @@
-pybullet_automatic_gait.py 를 다음과 같이 수정했을 때 로봇이 회전을 하며 이동했다
+# pybullet_automatic_gait.py 를 다음과 같이 수정했을 때 로봇이 회전을 하며 이동했다
 ```
 """
 Automatic Gait Simulation (Final Homework Version)
@@ -129,3 +129,93 @@ com_offset_z 가 20 (30 이상으로 하면 옆으로 넘어져버림)
 <img width="175" height="201" alt="image" src="https://github.com/user-attachments/assets/401709db-ed36-4ee2-8dcf-91a1a0c81159" />  <br>
 <img width="150" height="174" alt="image" src="https://github.com/user-attachments/assets/c045f0fa-1f5c-44cc-be2f-f47b2668031f" />  <br>
 <br><br>
+
+# spotmicroai.py
+
+로봇 발 위치 제어  <br>
+```
+    def feetPosition(self,Lp):
+        self.Lp=Lp
+```
+
+자세 제어  <br>
+```
+    def bodyRotation(self,rot):
+        self.rot=rot
+```
+
+무게중심 제어<br>
+```
+    def bodyPosition(self,pos):
+        self.pos=pos
+```
+
+step 함수를 보면 결국 calcIK 로 Lp, rot, pos 를 전달한다 (실질적으로 조정하는것으로 보임)<br>
+calcIK 는 kinematics.py 파일에 있다
+```
+self.angles = self.kin.calcIK(self.Lp, self.rot, self.pos)
+```
+
+# kinematics.py
+```
+    def calcIK(self,Lp,angles,center):
+        (omega,phi,psi)=angles
+        (xm,ym,zm)=center
+        
+        (Tlf,Trf,Tlb,Trb)= self.bodyIK(omega,phi,psi,xm,ym,zm)
+
+        Ix=np.array([[-1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]])
+        return np.array([self.legIK(np.linalg.inv(Tlf).dot(Lp[0])),
+        self.legIK(Ix.dot(np.linalg.inv(Trf).dot(Lp[1]))),
+        self.legIK(np.linalg.inv(Tlb).dot(Lp[2])),
+        self.legIK(Ix.dot(np.linalg.inv(Trb).dot(Lp[3])))])
+```
+bodyIK: "몸통이 움직이면 어깨는 어디로 가는지?" <br>-> 이 함수는 **몸통의 자세(기울기, 위치)**를 입력받아서, 네 다리의 어깨(Shoulder) 위치가 공간상에서 어디로 이동하는지 계산<br><br>
+legIK: "발 끝이 저기 있으려면 무릎은 얼마나 굽히는지?" <br>-> 이 함수는 어깨를 기준으로 **발 끝의 위치(x, y, z)**를 주면, 모터 3개(골반, 허벅지, 종아리)의 각도를 계산<br><br>
+calcIK: "모든 걸 종합해서 모터 돌려라!" <br>-> 이 함수가 bodyIK와 legIK를 합쳐서 최종 명령을 내리는 사령관<br><br>
+
+```
+def bodyIK(self, omega, phi, psi, xm, ym, zm):
+    # omega, phi, psi: Roll, Pitch, Yaw (회전 각도)
+    # xm, ym, zm: X, Y, Z (몸통 위치)
+```
+작동 원리:<br>
+회전 행렬(Rx, Ry, Rz): 입력받은 각도만큼 수학적으로 좌표를 회전.<br>
+이동 행렬(T): 입력받은 위치(xm, ym, zm)만큼 좌표를 이동시킴.<br>
+어깨 위치 계산: 원래 몸통 중심에서 떨어져 있던 네 개의 어깨(Tlf, Trf...)가 몸통이 회전하고 이동함에 따라 **새로운 좌표(공간상의 위치)**로 바뀜.<br>
+요약: "내가 몸을 앞으로 30도 기울이고 5cm 낮추면, 내 왼쪽 앞 어깨는 땅에서 몇 cm 높이에 있게 될까?"를 계산한다.<br>
+
+```
+def legIK(self, point):
+    # point: 어깨 기준으로 발이 어디 있는지 (x, y, z)
+    # l1, l2, l3, l4: 다리 뼈 길이들
+```
+작동 원리 (삼각함수 & 코사인 법칙):<br>
+사람 다리랑 똑같다. 발을 엉덩이 쪽으로 당기려면 무릎을 더 많이 굽혀야 한다.<br>
+l1, l2...는 로봇 다리 부품의 길이다. 변하지 않는다.<br>
+피타고라스 정리와 코사인 제2법칙(acos)을 써서, 발이 특정 좌표에 닿으려면 뼈와 뼈 사이의 각도(theta1, theta2, theta3)가 몇 도가 되어야 하는지 역산한다.<br>
+요약: "어깨로부터 10cm 아래, 5cm 앞에 발을 두려면 무릎은 45도, 허벅지는 30도 꺾어야 함."<br>
+
+```
+def calcIK(self, Lp, angles, center):
+    # Lp: 목표로 하는 발바닥 위치 (4개)
+    # angles, center: 몸통 자세와 위치
+```
+핵심 로직:<br>
+먼저 bodyIK를 불러서 현재 몸통 자세에 따른 어깨 위치를 구함. (Tlf, Trf...)<br>
+그다음 상대 좌표 변환.<br>
+np.linalg.inv(Tlf).dot(Lp[0]) 이 부분이 마법임.<br>
+"발바닥 위치(Lp)는 그대로 고정하고 싶은데, 몸통(어깨)이 움직여버렸네? 그럼 어깨 입장에서 발은 어디에 있는 셈이지?" 를 계산.<br>
+그 상대 위치를 legIK에 넣어서 각도를 구함.<br>
+
+## 결론
+로봇이 "몸통을 낮춰라(Height Down)" 명령을 받는다.<br>
+bodyIK: 어깨 위치가 아래로 내려갔다고 계산한다.<br>
+calcIK: 발은 땅에 붙어 있어야 하는데 어깨가 내려왔으니, 어깨 입장에서는 발이 위로 올라온 것과 똑같다.<br>
+legIK: "어깨 입장에서 발이 위로 올라왔네? 그럼 무릎을 더 굽혀야겠군." -> 모터 각도 변경.<br>
+결과: 로봇이 무릎을 굽히면서 몸이 낮아진다.<br>
+
+main 함수에서 control_pitch, height, com_offset_x 값을 바꿈.<br>
+그 값들이 calcIK 함수의 angles(회전)와 center(위치) 파라미터로 들어감.<br>
+calcIK는 변한 몸통 위치에 맞춰서, 발을 땅에 고정하기 위해 다리를 어떻게 뻗거나 접어야 할지 계산.<br>
+그래서 숫자만 바꿨는데도 로봇이 알아서 균형을 잡고 자세를 바꾼 것.<br>
