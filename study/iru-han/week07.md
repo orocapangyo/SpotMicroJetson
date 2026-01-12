@@ -1,4 +1,4 @@
-<img width="264" height="262" alt="image" src="https://github.com/user-attachments/assets/409d3dac-a2b7-41e3-a314-41fce59db9cb" />pybullet_automatic_gait.py 를 다음과 같이 수정했을 때 로봇이 회전을 하며 이동했다
+pybullet_automatic_gait.py 를 다음과 같이 수정했을 때 로봇이 회전을 하며 이동했다
 ```
 """
 Automatic Gait Simulation (Final Homework Version)
