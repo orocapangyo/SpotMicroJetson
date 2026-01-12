@@ -243,7 +243,10 @@ class KeyboardControlledWalking:
         시간 t에서의 4개 다리 발끝 위치 계산
         """
         # TrottingGait 파라미터 설정
-        self.trotting.Sh = self.step_height
+        if self.current_step_length != 0.0 or self.current_step_alpha != 0.0:
+            self.trotting.Sh = self.step_height
+        else:
+            self.trotting.Sh = 0.0  # 정지 시 발을 들지 않음
         
         kb_offset = {
             'IDstepLength': self.current_step_length,

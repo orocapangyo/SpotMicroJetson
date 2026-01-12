@@ -10,6 +10,8 @@ Week 07 - CoM 추적 및 Support Polygon 시각화
 - Support Polygon과 안정성 관계 파악
 - Trot Gait 시 phase에 따른 지지 다각형 변화 관찰
 """
+import matplotlib
+matplotlib.use('TkAgg')
 
 import numpy as np
 import matplotlib.pyplot as plt
