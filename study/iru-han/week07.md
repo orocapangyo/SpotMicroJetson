@@ -1,4 +1,4 @@
-pybullet_automatic_gait.py 를 다음과 같이 수정했을 때 로봇이 회전을 하며 이동했다
+<img width="264" height="262" alt="image" src="https://github.com/user-attachments/assets/409d3dac-a2b7-41e3-a314-41fce59db9cb" />pybullet_automatic_gait.py 를 다음과 같이 수정했을 때 로봇이 회전을 하며 이동했다
 ```
 """
 Automatic Gait Simulation (Final Homework Version)
@@ -98,3 +98,33 @@ def main():
 if __name__ == "__main__":
     main()
 ```
+
+control_pitch 가 0.5
+<img width="264" height="262" alt="image" src="https://github.com/user-attachments/assets/bd60b2f4-6545-4428-ae73-06370ef301e7" />
+<img width="151" height="157" alt="image" src="https://github.com/user-attachments/assets/b3ebc6cb-a850-4d49-bed6-536abba60078" />
+
+control_pitch 가 -0.5
+<img width="162" height="180" alt="image" src="https://github.com/user-attachments/assets/cdddbef1-7303-4886-abe2-c65b02cf757c" />
+<img width="285" height="220" alt="image" src="https://github.com/user-attachments/assets/444aa85c-29ca-4255-9cf4-c4e32904432e" />
+<img width="181" height="144" alt="image" src="https://github.com/user-attachments/assets/5bdf4057-3a37-4cab-9ab8-4727a025805a" />
+
+
+
+control_roll 이 0.5
+<img width="147" height="186" alt="image" src="https://github.com/user-attachments/assets/38f14577-d411-4bc8-aed8-9223544f3915" />
+<img width="149" height="143" alt="image" src="https://github.com/user-attachments/assets/1ecad31e-8de8-43d8-b632-83d2539702ec" />
+
+control_roll 이 -0.5
+<img width="201" height="224" alt="image" src="https://github.com/user-attachments/assets/cc817c7b-b457-420e-a3cf-f586b57c951b" />
+<img width="106" height="108" alt="image" src="https://github.com/user-attachments/assets/acb6e565-3cce-425a-bc48-78fdcf425ad4" />
+
+
+com_offset_x 가 50
+<img width="265" height="191" alt="image" src="https://github.com/user-attachments/assets/4f994c2d-d9d6-425b-8a7c-dad9dbc76746" />
+<img width="229" height="183" alt="image" src="https://github.com/user-attachments/assets/49770b48-d56d-4eac-b7cd-59a9d8cf4548" />
+<img width="134" height="148" alt="image" src="https://github.com/user-attachments/assets/502155e9-f990-4ac1-bcf5-0849b88a2627" />
+
+
+com_offset_z 가 20 (30 이상으로 하면 옆으로 넘어져버림)
+<img width="175" height="201" alt="image" src="https://github.com/user-attachments/assets/401709db-ed36-4ee2-8dcf-91a1a0c81159" />
+<img width="150" height="174" alt="image" src="https://github.com/user-attachments/assets/c045f0fa-1f5c-44cc-be2f-f47b2668031f" />
