@@ -98,7 +98,7 @@ sim.run()
 
 ### MuJoCo 시뮬레이션 구동
 
-![image.png](attachment:48d58b7b-fbac-46e5-a365-64fe9969174f:image.png)
+![image.png](image/week08_1)
 
 ### PyBullet vs MuJoCo 비교
 
