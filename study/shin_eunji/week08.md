@@ -112,13 +112,12 @@ mujoco 옵션 확인
 
 조인트 각도 실시간으로 확인과 제어가능 
 
-![image.png](image/week08_2.png)
+![image.png](image/week08_3.png)
+![image.png](image/week08_4.png)
 
 Control에 있는 조인트 움직여보기 
 
-![image.png](image/week08_3.png)
-
-![image.png](image/week08_4.png)
+![image.png](image/week08_2.png)
 
 Option에서 Sensor data 확인까지 가능
 
