@@ -98,7 +98,7 @@ sim.run()
 
 ### MuJoCo 시뮬레이션 구동
 
-![image.png](image/week08_1)
+![image.png](image/week08_1.png)
 
 ### PyBullet vs MuJoCo 비교
 
@@ -112,16 +112,16 @@ mujoco 옵션 확인
 
 조인트 각도 실시간으로 확인과 제어가능 
 
-![image.png](attachment:5fe47328-aef7-4c01-a571-e34a80fcbfb1:image.png)
+![image.png](image/week08_2.png)
 
 Control에 있는 조인트 움직여보기 
 
-![image.png](attachment:1a2b77e1-16c1-4701-8151-e765f3ed933d:image.png)
+![image.png](image/week08_3.png)
 
-![image.png](attachment:0a9c5da8-63a4-41b3-bacc-215b1b00cb39:image.png)
+![image.png](image/week08_4.png)
 
 Option에서 Sensor data 확인까지 가능
 
-![image.png](attachment:b279e07f-7d08-4ce2-b443-309d4358c025:image.png)
+![image.png](image/week08_5.png)
 
-![image.png](attachment:904d1b61-7cc8-4c4a-a0d5-0583e194292b:image.png)
+![image.png](image/week08_6.png)
