@@ -154,23 +154,27 @@ class SimpleWalkEnv(gym.Env):
 
 
 # ============================================================================
-# 학습 콜백
+# 학습 콜백 (SB3가 설치된 경우에만 사용)
 # ============================================================================
-class TensorboardCallback(BaseCallback):
-    """커스텀 로깅 콜백"""
-    
-    def __init__(self, verbose=0):
-        super().__init__(verbose)
-    
-    def _on_step(self) -> bool:
-        # 추가 메트릭 로깅
-        if self.n_calls % 1000 == 0:
-            if "infos" in self.locals:
-                infos = self.locals["infos"]
-                if len(infos) > 0 and "x_pos" in infos[0]:
-                    avg_x = np.mean([info.get("x_pos", 0) for info in infos])
-                    self.logger.record("custom/avg_x_pos", avg_x)
-        return True
+if SB3_AVAILABLE:
+    class TensorboardCallback(BaseCallback):
+        """커스텀 로깅 콜백"""
+        
+        def __init__(self, verbose=0):
+            super().__init__(verbose)
+        
+        def _on_step(self) -> bool:
+            # 추가 메트릭 로깅
+            if self.n_calls % 1000 == 0:
+                if "infos" in self.locals:
+                    infos = self.locals["infos"]
+                    if len(infos) > 0 and "x_pos" in infos[0]:
+                        avg_x = np.mean([info.get("x_pos", 0) for info in infos])
+                        self.logger.record("custom/avg_x_pos", avg_x)
+            return True
+else:
+    # SB3가 없으면 더미 클래스 정의
+    TensorboardCallback = None
 
 
 # ============================================================================
@@ -180,7 +184,8 @@ def make_env(env_class=SimpleWalkEnv, render_mode=None, rank=0, seed=0):
     """환경 생성 헬퍼 함수"""
     def _init():
         env = env_class(render_mode=render_mode)
-        env = Monitor(env)
+        if SB3_AVAILABLE:
+            env = Monitor(env)
         env.reset(seed=seed + rank)
         return env
     return _init
