@@ -39,6 +39,21 @@ pip install gymnasium[box2d]     # Box2D 물리 환경
 
 Gymnasium은 **MDP (Markov Decision Process)** 프레임워크를 기반으로 합니다.
 
+> [!NOTE]
+> **MDP (Markov Decision Process)란?**
+> 
+> **마르코프 결정 과정(MDP)**은 순차적 의사결정 문제를 수학적으로 모델링하는 프레임워크입니다. "마르코프"라는 이름은 **마르코프 성질(Markov Property)**에서 유래했으며, 이는 **미래 상태가 오직 현재 상태와 현재 행동에만 의존**하고, 과거의 상태나 행동에는 의존하지 않는다는 가정입니다.
+> 
+> MDP는 다음 5가지 요소로 정의됩니다:
+> - **S (State Space)**: 가능한 모든 상태의 집합
+> - **A (Action Space)**: 가능한 모든 행동의 집합
+> - **P (Transition Probability)**: 상태 전이 확률 $P(s'|s, a)$ - 상태 $s$에서 행동 $a$를 취했을 때 상태 $s'$로 이동할 확률
+> - **R (Reward Function)**: 보상 함수 $R(s, a, s')$ - 전이에 따른 즉각적인 보상
+> - **γ (Discount Factor)**: 할인율 (0 ≤ γ ≤ 1) - 미래 보상의 현재 가치 할인
+> 
+> 강화학습의 목표는 **누적 보상(Return)**을 최대화하는 최적 정책 $\pi^*$를 찾는 것입니다:
+> $$G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}$$
+
 ```mermaid
 graph LR
     A[Agent] -->|Action a| B[Environment]
@@ -460,23 +475,70 @@ env = gym.make("SpotMicro-v1", render_mode="human")
 
 ## 2. PPO 학습 파이프라인 구축
 
+### 2.0 Gymnasium과 PPO의 관계
+
+강화학습은 **에이전트(Agent)**와 **환경(Environment)**의 끊임없는 상호작용으로 이루어집니다. 본 강좌에서 사용하는 Gymnasium과 PPO의 관계를 비유를 통해 설명하면 다음과 같습니다.
+
+| 비교 항목 | Gymnasium (환경/Environment) | PPO (에이전트/Agent) |
+| :--- | :--- | :--- |
+| **비유** | **놀이터(세상)** | 놀이터에서 노는 **아이(학습자)** |
+| **역할** | 물리 엔진 관리, 규칙 제정, 점수(보상) 부여 | 상태를 보고 판단하여 행동 결정 및 학습 |
+| **핵심 기능** | `reset()`, `step(action)` 메서드 제공 | 정책($\pi$) 업데이트, 최적의 행동 찾기 |
+| **데이터 흐름** | 관측값(`obs`)과 보상(`reward`)을 에이전트에게 전달 | 결정된 행동(`action`)을 환경에 전달 |
+
+#### 상호작용 루프
+Stable-Baselines3(SB3) 라이브러리는 아래와 같이 Gymnasium 환경을 입력받아 PPO 알고리즘으로 에이전트를 학습시킵니다.
+
+```mermaid
+graph LR
+    subgraph "PPO (Brain/Agent)"
+        A[정책 신경망]
+    end
+    subgraph "Gymnasium (World/Env)"
+        B[물리 환경/상태]
+    end
+    
+    A -->|Action: 관절 토크| B
+    B -->|Obs: 센서 데이터| A
+    B -.->|Reward: 보상| A
+```
+
+---
+
 ### 2.1 PPO (Proximal Policy Optimization) 개요
 
-PPO는 현재 가장 널리 사용되는 Policy Gradient 알고리즘입니다.
+PPO는 OpenAI에서 개발한 알고리즘으로, 구현이 단순하면서도 성능과 안정성이 매우 뛰어나 현재 RL 분야에서 가장 표준적으로 사용되는 알고리즘입니다.
 
-**핵심 특징:**
+#### 핵심 철학: "안정적인 정책 업데이트"
+기존의 Policy Gradient 방법은 정책이 한 번에 너무 크게 변하면 학습이 망가지는 문제가 있었습니다. PPO는 **"이전 정책과 새로운 정책의 차이가 일정 범위를 넘지 않도록 제한"**하여 안정성을 확보합니다.
+
+#### 주요 특징
 - **안정적인 학습**: Clipping 기법으로 급격한 정책 변화 방지
-- **샘플 효율성**: 수집한 데이터를 여러 번 재사용 가능
-- **구현 용이성**: Trust Region 방법보다 단순하면서도 성능 우수
+- **샘플 효율성**: 수집한 데이터를 `n_epochs`만큼 재사용 가능
+- **Actor-Critic 구조**: 행동을 결정하는 Actor와 상태 가치를 평가하는 Critic 신경망 사용
 
-**손실 함수:**
+#### 손실 함수 및 Clipping
+PPO의 핵심인 **Clipped Surrogate Objective** 함수입니다:
 
 $$L^{CLIP}(\theta) = \mathbb{E}_t \left[ \min\left(r_t(\theta) \hat{A}_t, \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon) \hat{A}_t \right) \right]$$
 
 여기서:
-- $r_t(\theta) = \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{old}}(a_t|s_t)}$: 확률 비율
-- $\hat{A}_t$: Advantage 추정값
-- $\epsilon$: 클리핑 파라미터 (보통 0.2)
+- $r_t(\theta) = \frac{\pi_\theta(a_t|s_t)}{\pi_{\theta_{old}}(a_t|s_t)}$: 새로운 정책과 예전 정책의 확률 비율
+- $\hat{A}_t$: Advantage 추정값 (행동이 평소보다 얼마나 좋았나?)
+- $\epsilon$: 클리핑 파라미터 (보통 0.2, 코드의 `clip_range`)
+
+#### 주요 하이퍼파라미터 상세
+
+| 파라미터 | 코드 예시 | 설명 |
+| :--- | :--- | :--- |
+| **learning_rate** | `3e-4` | 인공신경망 가중치 업데이트 보폭 (보통 `3e-4`~`1e-4`) |
+| **n_steps** | `2048` | 한 번의 업데이트를 위해 수집하는 데이터 양 |
+| **batch_size** | `64` | 업데이트 시 한 번에 신경망에 넣는 미니배치 크기 |
+| **n_epochs** | `10` | 수집된 데이터를 몇 번 반복해서 학습할지 결정 |
+| **clip_range** | `0.2` | 정책 변화를 최대 ±20% 내로 제한 (안전장치) |
+| **ent_coef** | `0.01` | **엔트로피 보너스**. 높을수록 새로운 시도(탐험)를 더 많이 함 |
+| **gae_lambda** | `0.95` | Advantage 계산 시 미래 보상의 신뢰도를 조절하여 변동성 감소 |
+| **gamma (γ)** | `0.99` | 할인율. 미래 보상의 가치를 현재로 환산할 때의 감소 정도 |
 
 ### 2.2 Stable-Baselines3를 이용한 PPO 학습
 
