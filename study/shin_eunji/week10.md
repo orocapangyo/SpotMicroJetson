@@ -59,15 +59,15 @@
 
 stage1
 
-![image.png](attachment:7a91e916-93d5-44e7-b2a4-5a2c3d1e4f3a:image.png)
+![image.png](image/week10_1.png)
 
 stage2
 
-![image.png](attachment:6abab8fa-53ba-4691-bec6-1494215e803d:image.png)
+![image.png](image/week10_2.png)
 
 stage3
 
-![image.png](attachment:89741f7e-c6b6-4040-82c6-7bb3e8809a4c:image.png)
+![image.png](image/week10_3.png)
 
 <aside>
 
