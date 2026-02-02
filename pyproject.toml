@@ -1,0 +1,10 @@
+[project]
+name = "spot-micro-jetson"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "gymnasium>=1.2.3",
+]
+
+
