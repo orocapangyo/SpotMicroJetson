@@ -1,0 +1,192 @@
+<mujoco model="SpotMicroAI">
+  <option iterations="50" timestep="0.001" solver="PGS" gravity="0 0 -9.81" />
+
+  <compiler angle="radian" meshdir="/home/ehdtod001009/micro_spot/SpotMicroJetson/urdf/MUJOCO_MODEL/Parts" eulerseq="zyx" autolimits="true" balanceinertia="true"/>
+
+  <default>
+    <joint limited="true" damping="1" frictionloss="0.1"/>
+    <equality solref="0.001 2" />
+    
+    <default class="visualgeom">
+      <geom material="visualgeom" contype="0" conaffinity="0" density = "0" group="2"/>
+    </default>
+    
+    <default class="collision">
+        <geom density = "1000" group="3"/>
+        <default class="foot">
+        <geom type="sphere" size="0.03" pos="0 0 0.02325" priority="1" solimp="0.015 1 0.031" condim="6"
+            friction="0.8 0.02 0.01"/>
+        </default>
+    </default>        
+    <default class="affine">
+            <position kp="100" ctrlrange="-6.28 6.28" forcerange="-80 80"/>
+    </default>
+  </default>
+
+  <asset>
+    <mesh name="mainbody" content_type="model/obj" file="mainbody.obj" scale="0.001 0.001 0.001" />
+    <mesh name="rplidar_main" content_type="model/obj" file="rplidar_main.obj" scale="0.001 0.001 0.001" />
+    <mesh name="backpart" content_type="model/obj" file="backpart.obj" scale="0.001 0.001 0.001" />
+    <mesh name="frontpart" content_type="model/obj" file="frontpart.obj" scale="0.001 0.001 0.001" />
+    <mesh name="lshoulder" content_type="model/obj" file="lshoulder.obj" scale="0.001 0.001 0.001" />
+    <mesh name="larm_cover" content_type="model/obj" file="larm_cover.obj" scale="0.001 0.001 0.001" />
+    <mesh name="larm" content_type="model/obj" file="larm.obj" scale="0.001 0.001 0.001" />
+    <mesh name="lfoot" content_type="model/obj" file="lfoot.obj" scale="0.001 0.001 0.001" />
+    <mesh name="foot" content_type="model/obj" file="foot.obj" scale="0.001 0.001 0.001" />
+    <mesh name="rshoulder" content_type="model/obj" file="rshoulder.obj" scale="0.001 0.001 0.001" />
+    <mesh name="rarm_cover" content_type="model/obj" file="rarm_cover.obj" scale="0.001 0.001 0.001" />
+    <mesh name="rarm" content_type="model/obj" file="rarm.obj" scale="0.001 0.001 0.001" />
+    <mesh name="rfoot" content_type="model/obj" file="rfoot.obj" scale="0.001 0.001 0.001" />    
+    <texture name="texplane" type="2d" builtin="checker" rgb1=".0 .0 .0" rgb2=".8 .8 .8" width="100" height="100" />
+    <material name="matplane" reflectance="0." texture="texplane" texrepeat="1 1" texuniform="true" />
+    <material name="visualgeom" rgba="0.5 0.9 0.2 1" />
+    <hfield name="rough_terrain" nrow="100" ncol="100" size="5 5 0.5 0.1"/>
+
+  </asset>
+
+  <worldbody>
+    <light directional="true" diffuse="0.4 0.4 0.4" specular="0.1 0.1 0.1" pos="0 0 5.0" dir="0 0 -1" castshadow="false" />
+    <light directional="true" diffuse="0.6 0.6 0.6" specular="0.2 0.2 0.2" pos="0 0 4" dir="0 0 -1" />
+    <geom name="ground" type="hfield" hfield="rough_terrain" pos="0 0 0" material="matplane" condim="3" conaffinity="15"/>
+    <camera name="fixed" pos="0 -3.0 0.7625187017352328" xyaxes="1 0 0 0 0 1" />
+    <camera name="track" mode="trackcom" pos="0 -3.0 0.7625187017352328" xyaxes="1 0 0 0 0 1" />
+    
+    <body name="root" pos="0 0 0.2625187017352329" quat="1 0 0 0">
+      <freejoint name="root" />
+      <site name="imu" size="0.01" pos="0 0 0" />
+      <geom pos="-0.045 -0.06 -0.015" quat="1 0 0 0" type="mesh" rgba="0.1 0.1 0.1 1" mesh="mainbody" class="visualgeom" />
+      <geom size="0.07 0.055 0.035" type="box" rgba="0.1 0.1 0.1 1" class="collision"/>
+      <geom pos="-0.06425 0.02885 0.035" quat="0.707123 0.70709 0 0" type="mesh" rgba="0.1 0.1 0.1 1" mesh="rplidar_main" class="visualgeom" />
+      <geom pos="-0.04 -0.06 -0.014" quat="1 0 0 0" type="mesh" rgba="0.92 0.83 0 1" mesh="backpart" class="visualgeom" />
+      <geom pos="-0.04 -0.06 -0.014" quat="1 0 0 0" type="mesh" rgba="0.92 0.83 0 1" mesh="frontpart" class="visualgeom" />
+      <body name="front_left_shoulder_link" pos="-0.093 -0.036 0">
+        <joint name="front_left_shoulder" pos="0 0 0" axis="1 0 0" range="-0.548 0.548" actuatorfrcrange="-1000 1000" frictionloss="0.5" />
+        <geom pos="-0.135 -0.02 -0.01" quat="1 0 0 0" type="mesh" density="0" rgba="0.1 0.1 0.1 1" mesh="lshoulder" class="visualgeom" />
+        <geom type="box" rgba="0.1 0.1 0.1 1" size="0.022 0.019 0.035" class="collision"/>
+        <body name="front_left_leg_link" pos="0 -0.052 0">
+          <joint name="front_left_leg" pos="0 0 0" axis="0 1 0" range="-2.666 1.548" actuatorfrcrange="-1000 1000" />
+          <geom pos="-0.125 0.04 -0.02" type="mesh" density="0" rgba="0.1 0.1 0.1 1" mesh="larm" class="visualgeom" />
+          <geom type="box" rgba="0.1 0.1 0.1 1" size="0.014 0.018 0.06" pos="0 0 -0.05" class="collision"/>
+          <geom pos="-0.125 0.04 -0.02" type="mesh" density="0" rgba="0.92 0.83 0 1" mesh="larm_cover" class="visualgeom" />
+          <body name="front_left_foot_link" pos="-0.01 0 -0.12">
+            <joint name="front_left_foot" pos="0 0 0" axis="0 1 0" range="-0.1 2.59" actuatorfrcrange="-1000 1000" frictionloss="0.5" />
+            <geom pos="-0.12 0.04 0.1" type="mesh" density="0" rgba="0.1 0.1 0.1 1" mesh="lfoot" class="visualgeom" />
+            <geom size="0.013 0.01 0.0575" pos="0 0 -0.05" type="box" rgba="0.1 0.1 0.1 1" class="collision"/>
+            <geom pos="0 -0.01 -0.115" quat="0.980057 0 -0.198718 0" type="mesh" density="0" rgba="0.6 0.6 0.6 1" mesh="foot" class="visualgeom" />
+            <geom size="0.02" pos="0 0 -0.115" rgba="0.6 0.6 0.6 1" contype="1" conaffinity="1" density="0" group="6" class="foot"/>
+          </body>
+        </body>
+      </body>
+      <body name="front_right_shoulder_link" pos="-0.093 0.036 0">
+        <joint name="front_right_shoulder" pos="0 0 0" axis="1 0 0" range="-0.548 0.548" actuatorfrcrange="-1000 1000" frictionloss="0.5" />
+        <geom pos="-0.135 -0.09 -0.01" quat="1 0 0 0" type="mesh" density="0" rgba="0.1 0.1 0.1 1" mesh="rshoulder" class="visualgeom" />
+        <geom type="box" rgba="0.1 0.1 0.1 1" size="0.022 0.019 0.035" class="collision"/>
+        <body name="front_right_leg_link" pos="0 0.052 0">
+          <joint name="front_right_leg" pos="0 0 0" axis="0 1 0" range="-2.666 1.548" actuatorfrcrange="-1000 1000" />
+          <geom pos="-0.125 -0.15 -0.02" type="mesh" density="0" rgba="0.1 0.1 0.1 1" mesh="rarm" class="visualgeom" />
+          <geom type="box" rgba="0.1 0.1 0.1 1" size="0.014 0.018 0.06" pos="0 0 -0.05" class="collision"/>
+          <geom pos="-0.125 -0.15 -0.02" type="mesh" density="0" rgba="0.92 0.83 0 1" mesh="rarm_cover" class="visualgeom" />
+          <body name="front_right_foot_link" pos="-0.01 0 -0.12">
+            <joint name="front_right_foot" pos="0 0 0" axis="0 1 0" range="-0.1 2.59" actuatorfrcrange="-1000 1000" frictionloss="0.5" />
+            <geom pos="-0.12 -0.15 0.1" type="mesh" density="0" rgba="0.1 0.1 0.1 1" mesh="rfoot" class="visualgeom" />
+            <geom type="box" rgba="0.1 0.1 0.1 1" size="0.013 0.01 0.0575" pos="0 0 -0.05" class="collision"/>
+            <geom pos="0 -0.01 -0.115" quat="0.980057 0 -0.198718 0" type="mesh" density="0" rgba="0.6 0.6 0.6 1" mesh="foot" class="visualgeom" />
+            <geom size="0.02" pos="0 0 -0.115" rgba="0.6 0.6 0.6 1" contype="1" conaffinity="1" density="0" group="6" class="foot" />
+          </body>
+        </body>
+      </body>
+      <body name="rear_left_shoulder_link" pos="0.093 -0.036 0">
+        <joint name="rear_left_shoulder" pos="0 0 0" axis="1 0 0" range="-0.548 0.548" actuatorfrcrange="-1000 1000" frictionloss="0.5" />
+        <geom pos="-0.135 -0.02 -0.01" quat="1 0 0 0" type="mesh" density="0" rgba="0.1 0.1 0.1 1" mesh="lshoulder" class="visualgeom" />
+        <geom type="box" rgba="0.1 0.1 0.1 1" size="0.022 0.019 0.035" class="collision"/>
+        <body name="rear_left_leg_link" pos="0 -0.052 0">
+          <joint name="rear_left_leg" pos="0 0 0" axis="0 1 0" range="-2.666 1.548" actuatorfrcrange="-1000 1000" />
+          <geom pos="-0.125 0.04 -0.02" type="mesh" density="0" rgba="0.1 0.1 0.1 1" mesh="larm" class="visualgeom" />
+          <geom type="box" rgba="0.1 0.1 0.1 1" size="0.014 0.018 0.06" pos="0 0 -0.05" class = "collision"/>
+          <geom pos="-0.125 0.04 -0.02" type="mesh" density="0" rgba="0.92 0.83 0 1" mesh="larm_cover" class="visualgeom" />
+          <body name="rear_left_foot_link" pos="-0.01 0 -0.12">
+            <joint name="rear_left_foot" pos="0 0 0" axis="0 1 0" range="-0.1 2.59" actuatorfrcrange="-1000 1000" frictionloss="0.5" />
+            <geom pos="-0.12 0.04 0.1" type="mesh" density="0" rgba="0.1 0.1 0.1 1" mesh="lfoot" class="visualgeom" />
+            <geom type="box" rgba="0.1 0.1 0.1 1" size="0.013 0.01 0.0575" pos="0 0 -0.05" class = "collision"/>
+            <geom pos="0 -0.01 -0.115" quat="0.980057 0 -0.198718 0" type="mesh" density="0" rgba="0.6 0.6 0.6 1" mesh="foot" class="visualgeom" />
+            <geom size="0.02" pos="0 0 -0.115" rgba="0.6 0.6 0.6 1" contype="1" conaffinity="1" density="0" group="6" class="foot" />
+          </body>
+        </body>
+      </body>
+      <body name="rear_right_shoulder_link" pos="0.093 0.036 0">
+        <joint name="rear_right_shoulder" pos="0 0 0" axis="1 0 0" range="-0.548 0.548" actuatorfrcrange="-1000 1000" frictionloss="0.5" />
+        <geom pos="-0.135 -0.09 -0.01" quat="1 0 0 0" type="mesh" density="0" rgba="0.1 0.1 0.1 1" mesh="rshoulder" class="visualgeom" />
+        <geom type="box" rgba="0.1 0.1 0.1 1" size="0.022 0.019 0.035" class="collision"/>
+        <body name="rear_right_leg_link" pos="0 0.052 0">
+          <joint name="rear_right_leg" pos="0 0 0" axis="0 1 0" range="-2.666 1.548" actuatorfrcrange="-1000 1000" />
+          <geom pos="-0.125 -0.15 -0.02" type="mesh"  density="0" rgba="0.1 0.1 0.1 1" mesh="rarm" class="visualgeom" />
+          <geom type="box" rgba="0.1 0.1 0.1 1" size="0.014 0.018 0.06" pos="0 0 -0.05" class="collision"/>
+          <geom pos="-0.125 -0.15 -0.02" type="mesh" density="0" rgba="0.92 0.83 0 1" mesh="rarm_cover" class="visualgeom" />
+          <body name="rear_right_foot_link" pos="-0.01 0 -0.12">
+            <joint name="rear_right_foot" pos="0 0 0" axis="0 1 0" range="-0.1 2.59" actuatorfrcrange="-1000 1000" frictionloss="0.5" />
+            <geom pos="-0.12 -0.15 0.1" type="mesh" density="0" rgba="0.1 0.1 0.1 1" mesh="rfoot" class="visualgeom" />
+            <geom type="box" rgba="0.1 0.1 0.1 1" size="0.013 0.01 0.0575" pos="0 0 -0.05" class = "collision"/>            
+            <geom pos="0 -0.01 -0.115" quat="0.980057 0 -0.198718 0" type="mesh" density="0" rgba="0.6 0.6 0.6 1" mesh="foot" class="visualgeom" />
+            <geom size="0.02" pos="0 0 -0.115" rgba="0.6 0.6 0.6 1" contype="1" conaffinity="1" density="0" group="6" class="foot" />
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+
+  <actuator>
+    <position class="affine" name="front_left_shoulder" joint="front_left_shoulder"/>
+    <position class="affine" name="front_left_leg" joint="front_left_leg"/>
+    <position class="affine" name="front_left_foot" joint="front_left_foot" />
+    <position class="affine" name="front_right_shoulder" joint="front_right_shoulder"/>
+    <position class="affine" name="front_right_leg" joint="front_right_leg"/>
+    <position class="affine" name="front_right_foot" joint="front_right_foot" />
+    <position class="affine" name="rear_left_shoulder" joint="rear_left_shoulder"/>
+    <position class="affine" name="rear_left_leg" joint="rear_left_leg"/>
+    <position class="affine" name="rear_left_foot" joint="rear_left_foot"/>
+    <position class="affine" name="rear_right_shoulder" joint="rear_right_shoulder"/>
+    <position class="affine" name="rear_right_leg" joint="rear_right_leg"/>
+    <position class="affine" name="rear_right_foot" joint="rear_right_foot"/>
+  </actuator>
+
+  <sensor>
+    <actuatorpos name="front_left_shoulder_p" actuator="front_left_shoulder" />
+    <actuatorvel name="front_left_shoulder_v" actuator="front_left_shoulder" />
+    <actuatorfrc name="front_left_shoulder_f" actuator="front_left_shoulder" noise="0.001" />
+    <actuatorpos name="front_left_leg_p" actuator="front_left_leg" />
+    <actuatorvel name="front_left_leg_v" actuator="front_left_leg" />
+    <actuatorfrc name="front_left_leg_f" actuator="front_left_leg" noise="0.001" />
+    <actuatorpos name="front_left_foot_p" actuator="front_left_foot" />
+    <actuatorvel name="front_left_foot_v" actuator="front_left_foot" />
+    <actuatorfrc name="front_left_foot_f" actuator="front_left_foot" noise="0.001" />
+    <actuatorpos name="front_right_shoulder_p" actuator="front_right_shoulder" />
+    <actuatorvel name="front_right_shoulder_v" actuator="front_right_shoulder" />
+    <actuatorfrc name="front_right_shoulder_f" actuator="front_right_shoulder" noise="0.001" />
+    <actuatorpos name="front_right_leg_p" actuator="front_right_leg" />
+    <actuatorvel name="front_right_leg_v" actuator="front_right_leg" />
+    <actuatorfrc name="front_right_leg_f" actuator="front_right_leg" noise="0.001" />
+    <actuatorpos name="front_right_foot_p" actuator="front_right_foot" />
+    <actuatorvel name="front_right_foot_v" actuator="front_right_foot" />
+    <actuatorfrc name="front_right_foot_f" actuator="front_right_foot" noise="0.001" />
+    <actuatorpos name="rear_left_shoulder_p" actuator="rear_left_shoulder" />
+    <actuatorvel name="rear_left_shoulder_v" actuator="rear_left_shoulder" />
+    <actuatorfrc name="rear_left_shoulder_f" actuator="rear_left_shoulder" noise="0.001" />
+    <actuatorpos name="rear_left_leg_p" actuator="rear_left_leg" />
+    <actuatorvel name="rear_left_leg_v" actuator="rear_left_leg" />
+    <actuatorfrc name="rear_left_leg_f" actuator="rear_left_leg" noise="0.001" />
+    <actuatorpos name="rear_left_foot_p" actuator="rear_left_foot" />
+    <actuatorvel name="rear_left_foot_v" actuator="rear_left_foot" />
+    <actuatorfrc name="rear_left_foot_f" actuator="rear_left_foot" noise="0.001" />
+    <actuatorpos name="rear_right_shoulder_p" actuator="rear_right_shoulder" />
+    <actuatorvel name="rear_right_shoulder_v" actuator="rear_right_shoulder" />
+    <actuatorfrc name="rear_right_shoulder_f" actuator="rear_right_shoulder" noise="0.001" />
+    <actuatorpos name="rear_right_leg_p" actuator="rear_right_leg" />
+    <actuatorvel name="rear_right_leg_v" actuator="rear_right_leg" />
+    <actuatorfrc name="rear_right_leg_f" actuator="rear_right_leg" noise="0.001" />
+    <actuatorpos name="rear_right_foot_p" actuator="rear_right_foot" />
+    <actuatorvel name="rear_right_foot_v" actuator="rear_right_foot" />
+    <actuatorfrc name="rear_right_foot_f" actuator="rear_right_foot" noise="0.001" />
+    <framequat name="orientation" objtype="site" noise="0.001" objname="imu" />
+    <gyro name="angular-velocity" site="imu" noise="0.005" cutoff="34.9" />
+  </sensor>
+</mujoco>
