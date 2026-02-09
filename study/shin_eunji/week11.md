@@ -1,8 +1,7 @@
 11주차 : 이족 -사족 비교 
 unitree-g1 사용
 
-![image.png](attachment:42064e3c-7ec1-4af9-a72e-d68167acc83d:image.png)
-
+![image.png](image/week11_1.png)
 사족보행이랑 똑같은 PPO 모델 설계, 같은 파라미터 적용
 
 관절 조인트 변경
