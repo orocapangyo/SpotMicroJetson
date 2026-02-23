@@ -127,6 +127,12 @@ if body_height < 0.12 or abs(roll) > 0.6 or abs(pitch) > 0.6:
     reward -= fall_reward 
 ```
 
+Episode reward: 18.34720802307129
+Episode reward: 18.34720802307129
+Episode reward: 18.34720802307129
+Episode reward: 18.34720802307129
+Episode reward: 18.34720802307129
+
 
 
 
