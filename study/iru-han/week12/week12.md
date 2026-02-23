@@ -125,7 +125,8 @@ if __name__ == "__main__":
 
 ## 시뮬레이션
 deploy_mujoco.py
-'''
+
+```
 import time
 import mujoco.viewer
 import mujoco
@@ -283,7 +284,7 @@ if __name__ == "__main__":
             time_until_next_step = m.opt.timestep - (time.time() - step_start)
             if time_until_next_step > 0:
                 time.sleep(time_until_next_step)
-'''
+```
 
 ## 1. 프로젝트 개요 및 환경 구성
 본 프로젝트는 Unitree G1 Humanoid 로봇이 복잡한 물리 환경에서 안정적으로 보행할 수 있도록 강화학습(Reinforcement Learning) 환경을 구축하는 것을 목표로 한다. 학습은 NVIDIA의 Isaac Gym을 활용하여 수천 대의 로봇을 병렬로 학습시켜 효율을 높였으며, 최종 결과물은 물리적 신뢰도가 높은 MuJoCo 시뮬레이터에서 검증(Sim-to-Sim)하였다.
