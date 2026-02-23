@@ -116,3 +116,17 @@ reward -= 0.00015 * energy_waste
 ```
 
 body 기준 높이유지 보상 (0.20-0.23)
+```python
+body_height = self.data.xpos[1,2]        
+if 0.20 < body_height < 0.23:
+    height_reward = 1
+    reward += height_reward
+
+if body_height < 0.12 or abs(roll) > 0.6 or abs(pitch) > 0.6:
+    fall_reward = 6.5
+    reward -= fall_reward 
+```
+
+
+
+
