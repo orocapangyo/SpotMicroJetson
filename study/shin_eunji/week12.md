@@ -26,7 +26,7 @@ model = PPO(
 
 생존보상 reward = 0.5 default
 
-![image.png](image/week11_1.png)
+![image.png](image/week12_0.png)
 
 roll과 pitch를 활용하여 보상을 안정적으로 준다
 
