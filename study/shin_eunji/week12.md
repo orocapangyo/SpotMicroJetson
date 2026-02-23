@@ -1,4 +1,4 @@
-# 12주차 : 마무리
+<img width="3107" height="1244" alt="image" src="https://github.com/user-attachments/assets/83a89f17-f766-4c3c-a7df-5ae33eac4370" /># 12주차 : 마무리
 
 모델설계
 
@@ -128,11 +128,9 @@ if body_height < 0.12 or abs(roll) > 0.6 or abs(pitch) > 0.6:
 ```
 
 Episode reward: 18.34720802307129
-Episode reward: 18.34720802307129
-Episode reward: 18.34720802307129
-Episode reward: 18.34720802307129
-Episode reward: 18.34720802307129
 
 
+![image.png](image/week12_1.png)
+![image.png](image/week12_2.png)
 
 
