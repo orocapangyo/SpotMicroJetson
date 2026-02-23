@@ -30,6 +30,7 @@ model = PPO(
 
 roll과 pitch를 활용하여 보상을 안정적으로 준다
 안정적일때 +점수를 준다
+```python
 # 방향유지 보상: 0.5~1.0 Pitch(수평) 보상 
 w, x, y, z = self.data.qpos[3:7]        
 # roll
@@ -43,7 +44,9 @@ pitch = np.arcsin(np.clip(sinp, -1.0, 1.0))
 
 # 안정 보상
 orientation_reward = 7 * np.exp(-4.0 * (roll**2 + pitch**2))
-reward += orientation_reward    
+reward += orientation_reward       
+```
+
 전진보상 
 
 x가 바뀌면 플러스 
