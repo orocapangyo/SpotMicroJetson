@@ -152,11 +152,22 @@ class Robot:
         p.setGravity(0, 0, -9.81)
 
         orn = p.getQuaternionFromEuler([math.pi/30*0, 0*math.pi/50, 0])
-        p.setAdditionalSearchPath(pybullet_data.getDataPath())
-        planeUid = p.loadURDF("plane_transparent.urdf", [0, 0, 0], orn)
-        p.changeDynamics(planeUid, -1, lateralFriction=1)
-        texUid = p.loadTexture("concrete.png")
-        p.changeVisualShape(planeUid, -1, textureUniqueId=texUid)
+                # pybullet_data의 한글 경로 문제를 피하기 위해 바닥 직접 생성
+        plane_collision_id = p.createCollisionShape(
+            shapeType=p.GEOM_PLANE
+        )
+
+        planeUid = p.createMultiBody(
+            baseMass=0,
+            baseCollisionShapeIndex=plane_collision_id,
+            basePosition=[0, 0, 0],
+        )
+
+        p.changeDynamics(
+            planeUid,
+            -1,
+            lateralFriction=1.0,
+        )
         if self.useStairs:
             stairsUid = p.loadURDF("../urdf/stairs_gen.urdf.xml", [0, -1, 0], orn)
         flags=p.URDF_USE_SELF_COLLISION

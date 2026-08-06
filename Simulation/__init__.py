@@ -1,1 +1,1 @@
-from kinematics import Kinematic
+from Kinematics.kinematics import Kinematic
