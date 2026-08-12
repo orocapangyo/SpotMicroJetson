@@ -3,7 +3,7 @@ import mujoco.viewer
 import time
 
 # MuJoCo 모델 파일
-MODEL_PATH = "spotmicro.xml"
+MODEL_PATH = "../../../urdf/spot_micro.xml"
 
 # 모델 불러오기
 model = mujoco.MjModel.from_xml_path(MODEL_PATH)
